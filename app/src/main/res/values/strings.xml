@@ -1,0 +1,25 @@
+<resources>
+    <string name="app_name">Network Monitor</string>
+    <string name="monitor">Monitor</string>
+    <string name="test">Test</string>
+    <string name="network_monitor">Network Monitor</string>
+    <string name="track_you_internet_usage">Track you internet usage</string>
+    <string name="turn_on_the_counter">Notification Live Tracking:</string>
+    <string name="switchTracker">On/Off</string>
+    <string name="total">Total:</string>
+    <string name="current_download">Current Download:</string>
+    <string name="current_upload">Current Upload:</string>
+    <string name="download">Download:</string>
+    <string name="upload">Upload:</string>
+    <string name="ping">Ping:</string>
+    <string name="start_test">Start test</string>
+    <string name="channel">network channel</string>
+    <string name="channel_description">description</string>
+    <string name="_0">0</string>
+    <string name="mb_s">MB/S</string>
+    <string name="data_usage">Data Usage</string>
+    <string name="textview">TextView</string>
+    <string name="icon">icon</string>
+    <string name="notification_message">notif example message</string>
+    <string name="notification_title">notif example title</string>
+</resources>

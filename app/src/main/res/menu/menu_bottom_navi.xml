@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item android:id="@+id/monitor"
+        android:title="@string/monitor"
+        android:icon="@drawable/ic_monitor"/>
+
+    <item android:id="@+id/test"
+        android:title="@string/test"
+        android:icon="@drawable/ic_test"/>
+
+    <item android:id="@+id/usage"
+        android:title="@string/data_usage"
+        android:icon="@drawable/ic_data_usage"/>
+
+</menu>
