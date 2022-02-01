@@ -31,37 +31,23 @@ import android.widget.Toast;
 
 import com.example.networkmonitor.databinding.ActivityMainBinding;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.math.RoundingMode;
 import java.text.DateFormat;
-import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.Semaphore;
 
-import fr.bmartel.speedtest.SpeedTestReport;
-import fr.bmartel.speedtest.SpeedTestSocket;
-import fr.bmartel.speedtest.inter.ISpeedTestListener;
-import fr.bmartel.speedtest.model.SpeedTestError;
 
 public class MainActivity extends AppCompatActivity {
 
     private static final long MILLION=1048576;
     private static final long SECOND=1000;
-    private static final int FILE_SIZE = 10000000;
 
     private ActivityMainBinding binding;
     private boolean notificationTracker;
-    private SpeedTestSocket speedTestSocket;
     private String download;
     private String upload;
     private String ping;
@@ -100,7 +86,6 @@ public class MainActivity extends AppCompatActivity {
         requestPermissions();
         setListeners();
         updateUI();
-        setUpSpeedTest();
         recyclerViewWorkingThread();
 
 
@@ -196,12 +181,7 @@ public class MainActivity extends AppCompatActivity {
                         binding.currentDown.setText(currDownString);
                         String currUpString= currUp/MILLION + "MB/s";
                         binding.currentUp.setText(currUpString);
-                        String txtDownload=download;
-                        String txtUpload=upload;
-                        String txtPing=ping;
-                        binding.txtDown.setText(txtDownload);
-                        binding.txtUp.setText(txtUpload);
-                        binding.txtPing.setText(txtPing);
+
                     });
                 }
             }
@@ -221,11 +201,7 @@ public class MainActivity extends AppCompatActivity {
                         binding.card2.setVisibility(View.GONE);
                         binding.card3.setVisibility(View.GONE);
                         return true;
-                    case R.id.test:
-                        binding.card1.setVisibility(View.GONE);
-                        binding.card2.setVisibility(View.VISIBLE);
-                        binding.card3.setVisibility(View.GONE);
-                        return true;
+
                     case R.id.usage:
                         if(loaded) {
                             binding.card1.setVisibility(View.GONE);
@@ -233,11 +209,14 @@ public class MainActivity extends AppCompatActivity {
                             binding.card3.setVisibility(View.VISIBLE);
                             return true;
                         }
+                    case R.id.settings:
+                        binding.card1.setVisibility(View.GONE);
+                        binding.card2.setVisibility(View.VISIBLE);
+                        binding.card3.setVisibility(View.GONE);
+                        return true;
                 }
                 return false;
         });
-
-        binding.btnTest.setOnClickListener(v-> startTest());
 
         binding.switchTracker.setOnClickListener(v-> switchOnClick());
 
@@ -245,7 +224,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onSwipeLeft() {
                 if (binding.card1.getVisibility()==View.VISIBLE){
-                    binding.navbar.setSelectedItemId(R.id.test);
+                    binding.navbar.setSelectedItemId(R.id.settings);
                     return;
                 }
 
@@ -260,56 +239,36 @@ public class MainActivity extends AppCompatActivity {
                     return;
                 }
                 if (binding.card3.getVisibility()==View.VISIBLE){
-                    binding.navbar.setSelectedItemId(R.id.test);
+                    binding.navbar.setSelectedItemId(R.id.settings);
                 }
             }
         });
     }
 
-    private void startTest(){
-          Runnable test=()->{
-              speedTestSocket.startFixedDownload("http://ipv4.ikoula.testdebit.info/10M.iso", 1000);
-              try {
-                  semafor.acquire(1);
-              } catch (InterruptedException e) {
-                  e.printStackTrace();
-              }
 
-              speedTestSocket.startUpload("http://ipv4.ikoula.testdebit.info/",FILE_SIZE);
-              try {
-                  semafor.acquire(1);
-              } catch (InterruptedException e) {
-                  e.printStackTrace();
-              }
-              getPing();
-        };
-        Thread run=new Thread(test);
-        run.start();
-
-    }
-    //sa stacka
-    private void getPing(){
-        String str = "";
-        try {
-            java.lang.Process process = Runtime.getRuntime().exec(
-                    "/system/bin/ping -c 8 " + "www.google.com");
-            BufferedReader reader = new BufferedReader(new InputStreamReader(
-                    process.getInputStream()));
-            int i;
-            char[] buffer = new char[4096];
-            StringBuilder output = new StringBuilder();
-            while ((i = reader.read(buffer)) > 0)
-                output.append(buffer, 0, i);
-            reader.close();
-            str = output.toString();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        int pos=str.indexOf("Average");
-        pos+=11;
-        char[] characters=str.toCharArray();
-        ping=characters[pos]+characters[pos+1]+"ms";
-    }
+    //ako zatreba neka ostane
+//    private void getPing(){
+//        String str = "";
+//        try {
+//            java.lang.Process process = Runtime.getRuntime().exec(
+//                    "/system/bin/ping -c 8 " + "www.google.com");
+//            BufferedReader reader = new BufferedReader(new InputStreamReader(
+//                    process.getInputStream()));
+//            int i;
+//            char[] buffer = new char[4096];
+//            StringBuilder output = new StringBuilder();
+//            while ((i = reader.read(buffer)) > 0)
+//                output.append(buffer, 0, i);
+//            reader.close();
+//            str = output.toString();
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+//        int pos=str.indexOf("Average");
+//        pos+=11;
+//        char[] characters=str.toCharArray();
+//        ping=characters[pos]+characters[pos+1]+"ms";
+//    }
 
     private synchronized void switchOnClick(){
         if (notificationTracker){
@@ -319,51 +278,6 @@ public class MainActivity extends AppCompatActivity {
             startForegroundService(intentService);
             notificationTracker=true;
         }
-
-    }
-
-    private void setUpSpeedTest(){
-
-        speedTestSocket = new SpeedTestSocket();
-
-        speedTestSocket.addSpeedTestListener(new ISpeedTestListener() {
-
-            @Override
-            public void onCompletion(SpeedTestReport report) {
-                if(downloading) {
-                    Log.d("completed", "Nema errora");
-                    double result = report.getTransferRateBit().doubleValue() / (8 * MILLION);
-                    DecimalFormat df = new DecimalFormat("#.##");
-                    df.setRoundingMode(RoundingMode.CEILING);
-                    String finalResult;
-                    finalResult=df.format(result);
-                    download = finalResult + "MB/S";
-                    downloading=false;
-                }else{
-                    double result = report.getTransferRateBit().doubleValue() / (8 * MILLION);
-                    DecimalFormat df = new DecimalFormat("#.##");
-                    String finalResult;
-                    df.setRoundingMode(RoundingMode.CEILING);
-                    finalResult = df.format(result);
-                    upload = finalResult + "MB/S";
-                    downloading=true;
-                    Log.d("completed", "Nema errora upload");
-                }
-                semafor.release(1);
-            }
-
-            @Override
-            public void onError(SpeedTestError speedTestError, String errorMessage) {
-                Toast.makeText(getApplicationContext(),errorMessage,Toast.LENGTH_SHORT).show();
-                Log.d("error",errorMessage);
-                semafor.release(1);
-            }
-
-            @Override
-            public void onProgress(float percent, SpeedTestReport report) {
-
-              }
-        });
 
     }
 

@@ -5,12 +5,14 @@
         android:title="@string/monitor"
         android:icon="@drawable/ic_monitor"/>
 
-    <item android:id="@+id/test"
-        android:title="@string/test"
-        android:icon="@drawable/ic_test"/>
 
     <item android:id="@+id/usage"
         android:title="@string/data_usage"
         android:icon="@drawable/ic_data_usage"/>
+
+    <item android:id="@+id/settings"
+        android:title="@string/settings"
+        android:icon="@drawable/ic_settings"/>
+
 
 </menu>
