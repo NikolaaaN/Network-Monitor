@@ -2,6 +2,7 @@ package com.example.networkmonitor;
 
 import android.content.Context;
 import android.graphics.drawable.Drawable;
+import android.inputmethodservice.Keyboard;
 import android.media.Image;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -19,7 +20,6 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> {
      List<String> daily_usage;
      List<String> percentage;
      List<Drawable> slike;
-
      Context context;
 
     public MyAdapter(Context ct,List<String> monthly_usage,List<String> daily_usage,List<String> percentage,List<Drawable> slike){

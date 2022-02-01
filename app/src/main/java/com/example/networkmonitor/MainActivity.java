@@ -36,6 +36,7 @@ import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.Semaphore;
@@ -329,6 +330,7 @@ public class MainActivity extends AppCompatActivity {
         List<Drawable> images=new ArrayList<>();
         List<ApplicationInfo> appInfo=getAppInfo();
 
+       List<RowObject> rowList=new ArrayList<>();
 
         NetworkStatsManager networkStatsManager = (NetworkStatsManager) getApplicationContext().getSystemService(Context.NETWORK_STATS_SERVICE);
             double tempM=0;
@@ -360,23 +362,23 @@ public class MainActivity extends AppCompatActivity {
                         tempD += ((double)bucketDaily.getTxBytes())/MILLION;
                     }
 
-                    if(tempM>10 && monthly) {
+                    if(tempM>1 && monthly) {
 
                         tempM=Math.round(tempM*100)/100;
                         totalWifi+=tempM;
-
-
+                        RowObject row=new RowObject();
                         if(tempM>1000){
                             tempM=tempM/1000;
-                            monthlyUsage.add(tempM+"GB");
+                            row.setUsage(tempM+"GB");
                         }else
                         {
-                            monthlyUsage.add(tempM + "MB");
+                            row.setUsage(tempM+"MB");
                         }
-
                         String name=pm.getApplicationLabel(info).toString();
-                        names.add(name);
-                        images.add(pm.getApplicationIcon(info));
+                        row.setUsageTemp(tempM);
+                        row.setName(name);
+                        row.setSlika(pm.getApplicationIcon(info));
+                        rowList.add(row);
                     }
                     if (tempD>10 && daily){
                         dailyUsage.add(tempD+"MB");
@@ -386,6 +388,12 @@ public class MainActivity extends AppCompatActivity {
                     }
                     tempM=0;
                     tempD=0;
+                }
+                Collections.sort(rowList);
+                for (RowObject r:rowList){
+                    monthlyUsage.add(r.getUsage());
+                    names.add(r.getName());
+                    images.add(r.getSlika());
                 }
                 MyAdapter adapter=new MyAdapter(this,monthlyUsage,dailyUsage,names,images);
                 binding.recyclerView.setAdapter(adapter);
