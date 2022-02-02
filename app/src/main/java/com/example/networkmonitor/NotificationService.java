@@ -8,6 +8,7 @@ import android.app.Service;
 import android.content.Intent;
 import android.net.TrafficStats;
 import android.os.IBinder;
+import android.util.Log;
 
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
@@ -20,6 +21,7 @@ public class NotificationService extends Service {
     private NotificationManagerCompat notificationManager;
     private Notification notification;
     private Thread thread;
+    private boolean running;
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         createNotificationChannel();
@@ -34,6 +36,7 @@ public class NotificationService extends Service {
                 .build();
         builder = new NotificationCompat.Builder(this, getString(R.string.channel));
         notificationManager= NotificationManagerCompat.from(this);
+        running=true;
 
         startForeground(1, notification);
         setUpWorkerThread();
@@ -45,7 +48,7 @@ public class NotificationService extends Service {
         Runnable runnable = new Runnable() {
             @Override
             public void run() {
-                while (!Thread.interrupted()) {
+                while (running) {
                     long tempDown = TrafficStats.getTotalRxBytes();
                     long tempUp = TrafficStats.getTotalTxBytes();
 
@@ -58,6 +61,8 @@ public class NotificationService extends Service {
                     double currDown = (double) TrafficStats.getTotalRxBytes() - tempDown;
                     double currUp = (double) TrafficStats.getTotalTxBytes() - tempUp;
 
+                    roundingSpeed(currDown,currUp);
+
                     Intent intent1 = new Intent(NotificationService.this, MainActivity.class);
                     PendingIntent pendingIntent = PendingIntent.getActivity(NotificationService.this, 0, intent1, 0);
                     notification = new NotificationCompat.Builder(NotificationService.this, "ChannelId1")
@@ -68,10 +73,16 @@ public class NotificationService extends Service {
                             .build();
                     notificationManager.notify(1, notification);
                 }
+                Log.d("nit","thread stopped");
             }
         };
         thread=new Thread(runnable);
         thread.start();
+    }
+
+    private void roundingSpeed(double currDown, double currUp) {
+
+
     }
 
 
@@ -79,7 +90,6 @@ public class NotificationService extends Service {
         NotificationChannel notificationChannel = new NotificationChannel("ChannelId1", "ForeGround Notification", NotificationManager.IMPORTANCE_LOW);
         NotificationManager manager = getSystemService(NotificationManager.class);
         manager.createNotificationChannel(notificationChannel);
-
     }
 
     @Nullable
@@ -90,12 +100,15 @@ public class NotificationService extends Service {
     /******** Jos uvek ne znas da li ovo sklanja skroz service i thread**********/
     @Override
     public void onDestroy() {
-        thread.interrupt();
-        thread=null;
+        super.onDestroy();
+        running=false;
+        notificationManager.deleteNotificationChannel("ChannelId1");
         stopForeground(true);
         stopSelf();
-        notificationManager.deleteNotificationChannel("ChannelId1");
-        super.onDestroy();
+
+
+
+
     }
 }
 
