@@ -14,9 +14,14 @@ import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 
+import java.text.DecimalFormat;
+
 public class NotificationService extends Service {
     private final static int SECOND = 1000;
     private final static int MILLION=1000000;
+    private static final int THOUSAND =1000;
+    private static final int BYTES_IN_MB =1024*1024;
+    private static final int BYTES_IN_KB =1024;
     private NotificationCompat.Builder builder;
     private NotificationManagerCompat notificationManager;
     private Notification notification;
@@ -52,7 +57,6 @@ public class NotificationService extends Service {
                     long tempDown = TrafficStats.getTotalRxBytes();
                     long tempUp = TrafficStats.getTotalTxBytes();
 
-
                     try {
                         Thread.sleep(SECOND);
                     } catch (InterruptedException e) {
@@ -61,12 +65,13 @@ public class NotificationService extends Service {
                     double currDown = (double) TrafficStats.getTotalRxBytes() - tempDown;
                     double currUp = (double) TrafficStats.getTotalTxBytes() - tempUp;
 
-                    roundingSpeed(currDown,currUp);
+                    String download=roundingSpeed(currDown);
+                    String upload=roundingSpeed(currUp);
 
                     Intent intent1 = new Intent(NotificationService.this, MainActivity.class);
                     PendingIntent pendingIntent = PendingIntent.getActivity(NotificationService.this, 0, intent1, 0);
                     notification = new NotificationCompat.Builder(NotificationService.this, "ChannelId1")
-                            .setContentTitle("Download:" + currDown / MILLION + "MB/s  " + "Upload:" + currUp / MILLION + "MB/s")
+                            .setContentTitle("Download: " + download + "   " + "Upload: " + upload)
                             .setSmallIcon(R.drawable.ic_notification)
                             .setContentIntent(pendingIntent)
                             .setSilent(true)
@@ -80,11 +85,19 @@ public class NotificationService extends Service {
         thread.start();
     }
 
-    private void roundingSpeed(double currDown, double currUp) {
+    private String roundingSpeed(double value) {
 
+        DecimalFormat df = new DecimalFormat("0.00");
+
+        if (value>MILLION){
+            return df.format(value/BYTES_IN_MB)+"MB/s";
+        }
+        if (value>THOUSAND){
+            return df.format(value/BYTES_IN_KB)+"KB/s";
+        }
+        return df.format(value)+"B/s";
 
     }
-
 
     private void createNotificationChannel() {
         NotificationChannel notificationChannel = new NotificationChannel("ChannelId1", "ForeGround Notification", NotificationManager.IMPORTANCE_LOW);
@@ -105,10 +118,6 @@ public class NotificationService extends Service {
         notificationManager.deleteNotificationChannel("ChannelId1");
         stopForeground(true);
         stopSelf();
-
-
-
-
     }
 }
 
