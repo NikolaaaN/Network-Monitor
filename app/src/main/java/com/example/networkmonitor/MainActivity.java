@@ -27,11 +27,13 @@ import android.os.Handler;
 import android.provider.Settings;
 import android.util.Log;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.Toast;
 
 import com.example.networkmonitor.databinding.ActivityMainBinding;
 
 import java.text.DateFormat;
+import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -88,6 +90,7 @@ public class MainActivity extends AppCompatActivity {
         setListeners();
         updateUI();
         recyclerViewWorkingThread();
+
 
 
     }
@@ -176,11 +179,13 @@ public class MainActivity extends AppCompatActivity {
                     double currUp=(double)TrafficStats.getTotalTxBytes()-tempUp;
 
                     handler.post(()-> {
-                        String totalString =total / MILLION + "MB";
+                        DecimalFormat df = new DecimalFormat("0.00");
+
+                        String totalString =df.format(total / MILLION) + "MB";
                         binding.total.setText(totalString);
-                        String currDownString = currDown / MILLION + "MB/s";
+                        String currDownString = df.format(currDown / MILLION) + "MB/s";
                         binding.currentDown.setText(currDownString);
-                        String currUpString= currUp/MILLION + "MB/s";
+                        String currUpString= df.format(currUp/MILLION) + "MB/s";
                         binding.currentUp.setText(currUpString);
 
                     });
@@ -274,6 +279,7 @@ public class MainActivity extends AppCompatActivity {
     private synchronized void switchOnClick(){
         if (notificationTracker){
             notificationTracker=false;
+            intentService=new Intent(this,NotificationService.class);
             stopService(intentService);
         }else{
             startForegroundService(intentService);
@@ -299,8 +305,8 @@ public class MainActivity extends AppCompatActivity {
         dateFormat=new SimpleDateFormat("DD");
         int dayCur=Integer.parseInt(dateFormat.format(date));
 
-        boolean monthly=true;
-        boolean daily=false;
+        boolean monthly=false;
+        boolean daily=true;
 
         monthlyCal.set(Calendar.YEAR,yearCur);
         monthlyCal.set(Calendar.MONTH,--month);
@@ -313,6 +319,13 @@ public class MainActivity extends AppCompatActivity {
 
         LocalDate localDate=LocalDate.now();
 
+        Calendar c = Calendar.getInstance();
+        c.set(Calendar.HOUR_OF_DAY, 0);
+        c.set(Calendar.MINUTE, 0);
+        c.set(Calendar.SECOND, 0);
+        c.set(Calendar.MILLISECOND, 0);
+        long millis = c.getTimeInMillis();
+
         Calendar dailyCal=Calendar.getInstance();
         dailyCal.set(Calendar.YEAR,localDate.getYear());
         dailyCal.set(Calendar.MONTH,localDate.getMonth().getValue()-1);
@@ -322,13 +335,16 @@ public class MainActivity extends AppCompatActivity {
         dailyCal.set(Calendar.HOUR,0);
 
         long startTimeDaily = dailyCal.getTimeInMillis();
-        Log.d("daily",startTimeDaily+"");
-        Log.d("daily",System.currentTimeMillis()+"");
+        Log.wtf("vreme",millis+"");
+        Log.wtf("vreme",startTimeMonthly+"");
 
         PackageManager pm=getPackageManager();
         List<String> names=new ArrayList<>();
         List<Drawable> images=new ArrayList<>();
         List<ApplicationInfo> appInfo=getAppInfo();
+
+      Calendar cal=Calendar.getInstance();
+      cal.add(Calendar.DATE,3);
 
        List<RowObject> rowList=new ArrayList<>();
 
@@ -341,47 +357,39 @@ public class MainActivity extends AppCompatActivity {
             NetworkStats.Bucket bucketMonthly=new NetworkStats.Bucket();
             NetworkStats.Bucket bucketDaily=new NetworkStats.Bucket();
                 for(ApplicationInfo info:appInfo) {
-                    networkStats1 = networkStatsManager.queryDetailsForUid(ConnectivityManager.TYPE_WIFI, null, startTimeMonthly, System.currentTimeMillis(),info.uid);
-                    networkStats2 = networkStatsManager.queryDetailsForUid(ConnectivityManager.TYPE_WIFI, null, startTimeDaily, System.currentTimeMillis(),info.uid);
+                    networkStats1 = networkStatsManager.queryDetailsForUid(ConnectivityManager.TYPE_WIFI, null, startTimeMonthly, cal.getTimeInMillis(),info.uid);
+                    networkStats2 = networkStatsManager.queryDetailsForUid(ConnectivityManager.TYPE_WIFI, null, millis,cal.getTimeInMillis(),info.uid);
                     Log.d("networkStats",networkStats2.toString());
                     while(networkStats1.hasNextBucket() && monthly) {
                         networkStats1.getNextBucket(bucketMonthly);
                         tempM += ((double) bucketMonthly.getRxBytes()) / MILLION;
-
                         tempM += ((double) bucketMonthly.getTxBytes()) / MILLION;
-
-                        Log.d("kolicina",tempM+"");
 
                     }//ovde je vrv problem podeli ovaj while na dva gde je drugi za networkStats2.gasNextBucket()
 
 
                     while(networkStats2.hasNextBucket() && daily){
                         networkStats2.getNextBucket(bucketDaily);
-                        Log.d("bucket",bucketDaily.toString());
+                        Log.d("bucket",bucketDaily.getRxBytes()+"");
                         tempD += ((double)bucketDaily.getRxBytes())/MILLION;
                         tempD += ((double)bucketDaily.getTxBytes())/MILLION;
                     }
 
                     if(tempM>1 && monthly) {
-
-                        tempM=Math.round(tempM*100)/100;
                         totalWifi+=tempM;
                         RowObject row=new RowObject();
-                        if(tempM>1000){
-                            tempM=tempM/1000;
-                            row.setUsage(tempM+"GB");
-                        }else
-                        {
-                            row.setUsage(tempM+"MB");
-                        }
+
                         String name=pm.getApplicationLabel(info).toString();
                         row.setUsageTemp(tempM);
                         row.setName(name);
                         row.setSlika(pm.getApplicationIcon(info));
                         rowList.add(row);
                     }
-                    if (tempD>10 && daily){
-                        dailyUsage.add(tempD+"MB");
+                    if (tempD>1 && daily){
+                        totalWifi+=tempD;
+                        RowObject row=new RowObject();
+                        row.setUsageTemp(tempD);
+                        rowList.add(row);
                         String name=pm.getApplicationLabel(info).toString();
                         names.add(name);
                         images.add(pm.getApplicationIcon(info));
@@ -390,18 +398,34 @@ public class MainActivity extends AppCompatActivity {
                     tempD=0;
                 }
                 Collections.sort(rowList);
-                for (RowObject r:rowList){
+                setUpRow(rowList);
+                for (RowObject r:rowList) {
                     monthlyUsage.add(r.getUsage());
+                    dailyUsage.add(r.getUsage());
                     names.add(r.getName());
                     images.add(r.getSlika());
                 }
-                MyAdapter adapter=new MyAdapter(this,monthlyUsage,dailyUsage,names,images);
+
+                MyAdapter adapter=new MyAdapter(this,dailyUsage,dailyUsage,names,images);
                 binding.recyclerView.setAdapter(adapter);
                 totalWifi/=1000;
+                DecimalFormat df=new DecimalFormat("0.00");
+                totalWifi=Double.parseDouble(df.format(totalWifi));
                 String totalWifiUsage="Wifi: "+ totalWifi+"GB";
                 binding.wifiTotal.setText(totalWifiUsage);
-                for (ApplicationInfo info:appInfo){
-                    Log.d("imena",pm.getNameForUid(info.uid));
+    }
+
+    private void setUpRow(List<RowObject> rowList) {
+        for (RowObject r:rowList){
+            if(r.getUsageTemp()>1000){
+                r.setUsageTemp(r.getUsageTemp()/1000);
+                r.formatUsage();
+                r.setUsage(r.getUsageTemp()+"GB");
+            }else
+            {
+                r.formatUsage();
+                r.setUsage(r.getUsageTemp()+"MB");
+            }
         }
     }
 
@@ -421,6 +445,5 @@ public class MainActivity extends AppCompatActivity {
     protected void onDestroy() {
         stopService(intentService);
         super.onDestroy();
-
     }
 }

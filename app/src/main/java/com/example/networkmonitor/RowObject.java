@@ -2,6 +2,8 @@ package com.example.networkmonitor;
 
 import android.graphics.drawable.Drawable;
 
+import java.text.DecimalFormat;
+
 public class RowObject implements  Comparable<RowObject>{
 
     private double usageTemp;
@@ -58,5 +60,10 @@ public class RowObject implements  Comparable<RowObject>{
             return 0;
         else
             return 1;
+    }
+
+    public void formatUsage(){
+        DecimalFormat df = new DecimalFormat("0.0");
+        this.usageTemp=Double.parseDouble(df.format(this.usageTemp));
     }
 }
