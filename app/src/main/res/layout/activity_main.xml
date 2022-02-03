@@ -77,7 +77,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:visibility="visible">
+                android:visibility="invisible">
 
                 <androidx.constraintlayout.widget.ConstraintLayout
                     android:layout_width="match_parent"
@@ -170,12 +170,12 @@
             </LinearLayout>
 
             <LinearLayout
-                android:id="@+id/card2"
+                android:id="@+id/card3"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:layout_marginTop="100dp"
-                android:visibility="gone">
+                android:visibility="invisible">
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -185,35 +185,55 @@
             </LinearLayout>
 
             <androidx.constraintlayout.widget.ConstraintLayout
-                android:id="@+id/card3"
+                android:id="@+id/card2"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:orientation="vertical"
-                android:visibility="invisible">
+                android:visibility="visible">
 
                 <LinearLayout
                     android:id="@+id/linearTop"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
+                    android:weightSum="2"
                     app:layout_constraintTop_toTopOf="parent">
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        >
+                        <TextView
+                            android:id="@+id/wifiTotal"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginHorizontal="20dp"
+                            android:layout_marginVertical="10dp"
+                            android:textSize="20sp"
+                            android:textColor="@color/light_blue_600"
+                            android:textStyle="bold"
+                            />
 
-                    <TextView
-                        android:id="@+id/wifiTotal"
-                        android:layout_width="wrap_content"
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginHorizontal="20dp"
-                        android:layout_marginVertical="10dp"
-                        android:textSize="20sp"
-                        />
-                    <TextView
-                        android:id="@+id/mobileTotal"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginHorizontal="20dp"
-                        android:layout_marginVertical="10dp"
-                        android:textSize="20sp"
-                        />
+                        android:layout_weight="1"
+                        >
+                        <TextView
+                            android:id="@+id/mobileTotal"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginHorizontal="20dp"
+                            android:layout_marginVertical="10dp"
+                            android:textSize="20sp"
+                            android:textColor="@color/black"
+                            android:text="@string/mobile"
+                            android:textStyle="bold"
+                            />
+                    </LinearLayout>
+
 
                 </LinearLayout>
 

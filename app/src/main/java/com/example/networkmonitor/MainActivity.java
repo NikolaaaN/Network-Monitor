@@ -139,7 +139,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-   //sa stacka
+
     private boolean getGrantStatus(){
         AppOpsManager appOps = (AppOpsManager) getApplicationContext()
                 .getSystemService(Context.APP_OPS_SERVICE);
@@ -192,7 +192,6 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         };
-
         Thread start=new Thread(monitor);
         start.start();
 
@@ -211,14 +210,14 @@ public class MainActivity extends AppCompatActivity {
                     case R.id.usage:
                         if(loaded) {
                             binding.card1.setVisibility(View.GONE);
-                            binding.card2.setVisibility(View.GONE);
-                            binding.card3.setVisibility(View.VISIBLE);
+                            binding.card2.setVisibility(View.VISIBLE);
+                            binding.card3.setVisibility(View.GONE);
                             return true;
                         }
                     case R.id.settings:
                         binding.card1.setVisibility(View.GONE);
-                        binding.card2.setVisibility(View.VISIBLE);
-                        binding.card3.setVisibility(View.GONE);
+                        binding.card2.setVisibility(View.GONE);
+                        binding.card3.setVisibility(View.VISIBLE);
                         return true;
                 }
                 return false;
@@ -296,57 +295,23 @@ public class MainActivity extends AppCompatActivity {
 
     @SuppressLint("SimpleDateFormat")
     private void recyclerViewLoading(){
-        Calendar monthlyCal = Calendar.getInstance();
-        DateFormat dateFormat = new SimpleDateFormat("MM");
-        Date date = new Date();
-        int month=Integer.parseInt(dateFormat.format(date));
-        dateFormat=new SimpleDateFormat("yyyy");
-        int yearCur=Integer.parseInt(dateFormat.format(date));
-        dateFormat=new SimpleDateFormat("DD");
-        int dayCur=Integer.parseInt(dateFormat.format(date));
 
         boolean monthly=false;
         boolean daily=true;
 
-        monthlyCal.set(Calendar.YEAR,yearCur);
-        monthlyCal.set(Calendar.MONTH,--month);
-        monthlyCal.set(Calendar.DAY_OF_MONTH,1);
-        monthlyCal.set(Calendar.HOUR_OF_DAY,1);
-        monthlyCal.set(Calendar.MINUTE,1);
-        monthlyCal.set(Calendar.SECOND,1);
+        long startTimeMonthly = currentmonthMillis();;
 
-        long startTimeMonthly = monthlyCal.getTimeInMillis();
-
-        LocalDate localDate=LocalDate.now();
-
-        Calendar c = Calendar.getInstance();
-        c.set(Calendar.HOUR_OF_DAY, 0);
-        c.set(Calendar.MINUTE, 0);
-        c.set(Calendar.SECOND, 0);
-        c.set(Calendar.MILLISECOND, 0);
-        long millis = c.getTimeInMillis();
-
-        Calendar dailyCal=Calendar.getInstance();
-        dailyCal.set(Calendar.YEAR,localDate.getYear());
-        dailyCal.set(Calendar.MONTH,localDate.getMonth().getValue()-1);
-        dailyCal.set(Calendar.DAY_OF_MONTH,localDate.getDayOfMonth());
-        dailyCal.set(Calendar.MINUTE,0);
-        dailyCal.set(Calendar.SECOND,0);
-        dailyCal.set(Calendar.HOUR,0);
-
-        long startTimeDaily = dailyCal.getTimeInMillis();
-        Log.wtf("vreme",millis+"");
-        Log.wtf("vreme",startTimeMonthly+"");
+        long dateInMillis=currentDateMillis();
 
         PackageManager pm=getPackageManager();
         List<String> names=new ArrayList<>();
         List<Drawable> images=new ArrayList<>();
         List<ApplicationInfo> appInfo=getAppInfo();
 
-      Calendar cal=Calendar.getInstance();
-      cal.add(Calendar.DATE,3);
+        Calendar cal=Calendar.getInstance();
+        cal.add(Calendar.DATE,3);
 
-       List<RowObject> rowList=new ArrayList<>();
+        List<RowObject> rowList=new ArrayList<>();
 
         NetworkStatsManager networkStatsManager = (NetworkStatsManager) getApplicationContext().getSystemService(Context.NETWORK_STATS_SERVICE);
             double tempM=0;
@@ -358,16 +323,14 @@ public class MainActivity extends AppCompatActivity {
             NetworkStats.Bucket bucketDaily=new NetworkStats.Bucket();
                 for(ApplicationInfo info:appInfo) {
                     networkStats1 = networkStatsManager.queryDetailsForUid(ConnectivityManager.TYPE_WIFI, null, startTimeMonthly, cal.getTimeInMillis(),info.uid);
-                    networkStats2 = networkStatsManager.queryDetailsForUid(ConnectivityManager.TYPE_WIFI, null, millis,cal.getTimeInMillis(),info.uid);
+                    networkStats2 = networkStatsManager.queryDetailsForUid(ConnectivityManager.TYPE_WIFI, null, dateInMillis,cal.getTimeInMillis(),info.uid);
                     Log.d("networkStats",networkStats2.toString());
                     while(networkStats1.hasNextBucket() && monthly) {
                         networkStats1.getNextBucket(bucketMonthly);
                         tempM += ((double) bucketMonthly.getRxBytes()) / MILLION;
                         tempM += ((double) bucketMonthly.getTxBytes()) / MILLION;
 
-                    }//ovde je vrv problem podeli ovaj while na dva gde je drugi za networkStats2.gasNextBucket()
-
-
+                    }
                     while(networkStats2.hasNextBucket() && daily){
                         networkStats2.getNextBucket(bucketDaily);
                         Log.d("bucket",bucketDaily.getRxBytes()+"");
@@ -378,7 +341,6 @@ public class MainActivity extends AppCompatActivity {
                     if(tempM>1 && monthly) {
                         totalWifi+=tempM;
                         RowObject row=new RowObject();
-
                         String name=pm.getApplicationLabel(info).toString();
                         row.setUsageTemp(tempM);
                         row.setName(name);
@@ -427,6 +389,34 @@ public class MainActivity extends AppCompatActivity {
                 r.setUsage(r.getUsageTemp()+"MB");
             }
         }
+    }
+
+    public long currentDateMillis(){
+        Calendar c = Calendar.getInstance();
+        c.set(Calendar.HOUR_OF_DAY, 0);
+        c.set(Calendar.MINUTE, 0);
+        c.set(Calendar.SECOND, 0);
+        c.set(Calendar.MILLISECOND, 0);
+        return c.getTimeInMillis();
+    }
+
+    public long currentmonthMillis(){
+        Calendar monthlyCal = Calendar.getInstance();
+        DateFormat dateFormat = new SimpleDateFormat("MM");
+        Date date = new Date();
+        int month=Integer.parseInt(dateFormat.format(date));
+        dateFormat=new SimpleDateFormat("yyyy");
+        int yearCur=Integer.parseInt(dateFormat.format(date));
+        dateFormat=new SimpleDateFormat("DD");
+        int dayCur=Integer.parseInt(dateFormat.format(date));
+
+        monthlyCal.set(Calendar.YEAR,yearCur);
+        monthlyCal.set(Calendar.MONTH,--month);
+        monthlyCal.set(Calendar.DAY_OF_MONTH,1);
+        monthlyCal.set(Calendar.HOUR_OF_DAY,1);
+        monthlyCal.set(Calendar.MINUTE,1);
+        monthlyCal.set(Calendar.SECOND,1);
+        return monthlyCal.getTimeInMillis();
     }
 
     public void recyclerViewWorkingThread() {

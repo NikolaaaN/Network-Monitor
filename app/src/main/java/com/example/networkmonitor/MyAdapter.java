@@ -1,6 +1,7 @@
 package com.example.networkmonitor;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.inputmethodservice.Keyboard;
 import android.media.Image;
@@ -11,6 +12,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.List;
@@ -20,7 +22,7 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> {
      List<String> daily_usage;
      List<String> percentage;
      List<Drawable> slike;
-     Context context;
+     public Context context;
 
     public MyAdapter(Context ct,List<String> monthly_usage,List<String> daily_usage,List<String> percentage,List<Drawable> slike){
         context=ct;
@@ -51,6 +53,7 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> {
         return monthly_usage.size();
     }
 
+
     public static class MyViewHolder extends RecyclerView.ViewHolder {
         TextView txtMonth;
         TextView txtDay;
@@ -60,6 +63,7 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> {
         public MyViewHolder(@NonNull View itemView) {
             super(itemView);
             txtMonth=itemView.findViewById(R.id.txtMonthly);
+            txtMonth.setTextColor(Color.parseColor("#FF039BE5"));
             txtPercentage=itemView.findViewById(R.id.txtPercentage);
             icon=itemView.findViewById(R.id.rowIcon);
 
