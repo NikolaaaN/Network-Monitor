@@ -5,10 +5,10 @@
     <string name="network_monitor">Network Monitor</string>
     <string name="track_you_internet_usage">Track you internet usage</string>
     <string name="turn_on_the_counter">Notification Live Tracking:</string>
-    <string name="switchTracker">On/Off</string>
-    <string name="total">Total:</string>
-    <string name="current_download">Current Download:</string>
-    <string name="current_upload">Current Upload:</string>
+    <string name="switchTracker">Off/On</string>
+    <string name="total">Total: </string>
+    <string name="current_download">Down: </string>
+    <string name="current_upload">Up: </string>
     <string name="download">Download:</string>
     <string name="upload">Upload:</string>
     <string name="ping">Ping:</string>

@@ -25,9 +25,7 @@ import android.os.Bundle;
 import android.os.Handler;
 
 import android.provider.Settings;
-import android.util.Log;
 import android.view.View;
-import android.widget.ArrayAdapter;
 import android.widget.Toast;
 
 import com.example.networkmonitor.databinding.ActivityMainBinding;
@@ -35,27 +33,22 @@ import com.example.networkmonitor.databinding.ActivityMainBinding;
 import java.text.DateFormat;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
-import java.util.concurrent.Semaphore;
-
 
 public class MainActivity extends AppCompatActivity {
 
     private static final long MILLION=1048576;
     private static final long SECOND=1000;
+    private static final int THOUSAND =1000;
+    private static final int BYTES_IN_MB =1024*1024;
+    private static final int BYTES_IN_KB =1024;
 
     private ActivityMainBinding binding;
     private boolean notificationTracker;
-    private String download;
-    private String upload;
-    private String ping;
-    private boolean downloading=true;
-    private Semaphore semafor;
     private List<String> monthlyUsage;
     private List<String> dailyUsage;
     private static final int PERMISSION_CODE=1;
@@ -76,10 +69,6 @@ public class MainActivity extends AppCompatActivity {
         binding.card3.setVisibility(View.GONE);
 
         binding.switchTracker.performClick();
-        download="";
-        upload="";
-        ping="";
-        semafor=new Semaphore(0);
         monthlyUsage=new ArrayList<>();
         dailyUsage=new ArrayList<>();
 
@@ -90,9 +79,6 @@ public class MainActivity extends AppCompatActivity {
         setListeners();
         updateUI();
         recyclerViewWorkingThread();
-
-
-
     }
     @Override
     protected void onStart(){
@@ -135,10 +121,8 @@ public class MainActivity extends AppCompatActivity {
                 if (grantResults.length > 0 && grantResults[0] != PackageManager.PERMISSION_GRANTED) {
                     Toast.makeText(this,"Internet and state permissions denied",Toast.LENGTH_SHORT).show();
                 }
-
         }
     }
-
 
     private boolean getGrantStatus(){
         AppOpsManager appOps = (AppOpsManager) getApplicationContext()
@@ -162,12 +146,10 @@ public class MainActivity extends AppCompatActivity {
             @SuppressWarnings("BusyWait")
             @Override
             public void run() {
-
                 while(!Thread.interrupted()) {
-                    long tempDown = TrafficStats.getTotalRxBytes();
-                    long tempUp=TrafficStats.getTotalTxBytes();
-                    long total = TrafficStats.getTotalRxBytes() - usageAtStart;
-
+                    double tempDown = ((double) TrafficStats.getTotalRxBytes());
+                    double tempUp= ((double)TrafficStats.getTotalTxBytes());
+                    double total =  ((double)TrafficStats.getTotalRxBytes() - usageAtStart);
 
                     try {
                         Thread.sleep(SECOND);
@@ -178,15 +160,15 @@ public class MainActivity extends AppCompatActivity {
                     double currDown=(double)TrafficStats.getTotalRxBytes()-tempDown;
                     double currUp=(double)TrafficStats.getTotalTxBytes()-tempUp;
 
+                    String download=roundingSpeed(currDown);
+                    String upload=roundingSpeed(currUp);
+
                     handler.post(()-> {
                         DecimalFormat df = new DecimalFormat("0.00");
-
                         String totalString =df.format(total / MILLION) + "MB";
                         binding.total.setText(totalString);
-                        String currDownString = df.format(currDown / MILLION) + "MB/s";
-                        binding.currentDown.setText(currDownString);
-                        String currUpString= df.format(currUp/MILLION) + "MB/s";
-                        binding.currentUp.setText(currUpString);
+                        binding.currentDown.setText(download);
+                        binding.currentUp.setText(upload);
 
                     });
                 }
@@ -194,64 +176,76 @@ public class MainActivity extends AppCompatActivity {
         };
         Thread start=new Thread(monitor);
         start.start();
+    }
+
+    private String roundingSpeed(double value) {
+
+        DecimalFormat df = new DecimalFormat("0.00");
+
+        if (value>MILLION){
+            return df.format(value/BYTES_IN_MB)+"MB/s";
+        }
+        if (value>THOUSAND){
+            return df.format(value/BYTES_IN_KB)+"KB/s";
+        }
+        return df.format(value)+"B/s";
 
     }
 
     @SuppressLint({"NonConstantResourceId", "ClickableViewAccessibility"})
-    private void setListeners(){
-        binding.navbar.setOnItemSelectedListener(item-> {
-                switch (item.getItemId()){
-                    case R.id.monitor:
-                        binding.card1.setVisibility(View.VISIBLE);
-                        binding.card2.setVisibility(View.GONE);
+    private void setListeners() {
+        binding.navbar.setOnItemSelectedListener(item -> {
+            switch (item.getItemId()) {
+                case R.id.monitor:
+                    binding.card1.setVisibility(View.VISIBLE);
+                    binding.card2.setVisibility(View.GONE);
+                    binding.card3.setVisibility(View.GONE);
+                    return true;
+
+                case R.id.usage:
+                    if (loaded) {
+                        binding.card1.setVisibility(View.GONE);
+                        binding.card2.setVisibility(View.VISIBLE);
                         binding.card3.setVisibility(View.GONE);
                         return true;
-
-                    case R.id.usage:
-                        if(loaded) {
-                            binding.card1.setVisibility(View.GONE);
-                            binding.card2.setVisibility(View.VISIBLE);
-                            binding.card3.setVisibility(View.GONE);
-                            return true;
-                        }
-                    case R.id.settings:
-                        binding.card1.setVisibility(View.GONE);
-                        binding.card2.setVisibility(View.GONE);
-                        binding.card3.setVisibility(View.VISIBLE);
-                        return true;
-                }
-                return false;
+                    }
+                case R.id.settings:
+                    binding.card1.setVisibility(View.GONE);
+                    binding.card2.setVisibility(View.GONE);
+                    binding.card3.setVisibility(View.VISIBLE);
+                    return true;
+            }
+            return false;
         });
 
-        binding.switchTracker.setOnClickListener(v-> switchOnClick());
+        binding.switchTracker.setOnClickListener(v -> switchOnClick());
 
         binding.constraintLayout.setOnTouchListener(new OnSwipeTouchListener(this) {
             @Override
             public void onSwipeLeft() {
-                if (binding.card1.getVisibility()==View.VISIBLE){
+                if (binding.card1.getVisibility() == View.VISIBLE) {
                     binding.navbar.setSelectedItemId(R.id.settings);
                     return;
                 }
 
-                if (binding.card2.getVisibility()==View.VISIBLE){
+                if (binding.card2.getVisibility() == View.VISIBLE) {
                     binding.navbar.setSelectedItemId(R.id.usage);
                 }
             }
+
             @Override
-            public void onSwipeRight(){
-                if (binding.card2.getVisibility()==View.VISIBLE){
+            public void onSwipeRight() {
+                if (binding.card2.getVisibility() == View.VISIBLE) {
                     binding.navbar.setSelectedItemId(R.id.monitor);
                     return;
                 }
-                if (binding.card3.getVisibility()==View.VISIBLE){
+                if (binding.card3.getVisibility() == View.VISIBLE) {
                     binding.navbar.setSelectedItemId(R.id.settings);
                 }
             }
         });
     }
 
-
-    //ako zatreba neka ostane
 //    private void getPing(){
 //        String str = "";
 //        try {
@@ -284,7 +278,6 @@ public class MainActivity extends AppCompatActivity {
             startForegroundService(intentService);
             notificationTracker=true;
         }
-
     }
 
     @SuppressLint("QueryPermissionsNeeded")
@@ -296,85 +289,31 @@ public class MainActivity extends AppCompatActivity {
     @SuppressLint("SimpleDateFormat")
     private void recyclerViewLoading(){
 
-        boolean monthly=false;
-        boolean daily=true;
+        long start=currentDateMillis();
 
-        long startTimeMonthly = currentmonthMillis();;
-
-        long dateInMillis=currentDateMillis();
-
-        PackageManager pm=getPackageManager();
         List<String> names=new ArrayList<>();
         List<Drawable> images=new ArrayList<>();
-        List<ApplicationInfo> appInfo=getAppInfo();
-
-        Calendar cal=Calendar.getInstance();
-        cal.add(Calendar.DATE,3);
-
         List<RowObject> rowList=new ArrayList<>();
 
-        NetworkStatsManager networkStatsManager = (NetworkStatsManager) getApplicationContext().getSystemService(Context.NETWORK_STATS_SERVICE);
-            double tempM=0;
-            double tempD=0;
-            double totalWifi=0;
-            NetworkStats networkStats1;
-            NetworkStats networkStats2;
-            NetworkStats.Bucket bucketMonthly=new NetworkStats.Bucket();
-            NetworkStats.Bucket bucketDaily=new NetworkStats.Bucket();
-                for(ApplicationInfo info:appInfo) {
-                    networkStats1 = networkStatsManager.queryDetailsForUid(ConnectivityManager.TYPE_WIFI, null, startTimeMonthly, cal.getTimeInMillis(),info.uid);
-                    networkStats2 = networkStatsManager.queryDetailsForUid(ConnectivityManager.TYPE_WIFI, null, dateInMillis,cal.getTimeInMillis(),info.uid);
-                    Log.d("networkStats",networkStats2.toString());
-                    while(networkStats1.hasNextBucket() && monthly) {
-                        networkStats1.getNextBucket(bucketMonthly);
-                        tempM += ((double) bucketMonthly.getRxBytes()) / MILLION;
-                        tempM += ((double) bucketMonthly.getTxBytes()) / MILLION;
+        double totalWifi=retrieveDataUsage(rowList,start,ConnectivityManager.TYPE_WIFI);
 
-                    }
-                    while(networkStats2.hasNextBucket() && daily){
-                        networkStats2.getNextBucket(bucketDaily);
-                        Log.d("bucket",bucketDaily.getRxBytes()+"");
-                        tempD += ((double)bucketDaily.getRxBytes())/MILLION;
-                        tempD += ((double)bucketDaily.getTxBytes())/MILLION;
-                    }
+        Collections.sort(rowList);
+        setUpRow(rowList);
 
-                    if(tempM>1 && monthly) {
-                        totalWifi+=tempM;
-                        RowObject row=new RowObject();
-                        String name=pm.getApplicationLabel(info).toString();
-                        row.setUsageTemp(tempM);
-                        row.setName(name);
-                        row.setSlika(pm.getApplicationIcon(info));
-                        rowList.add(row);
-                    }
-                    if (tempD>1 && daily){
-                        totalWifi+=tempD;
-                        RowObject row=new RowObject();
-                        row.setUsageTemp(tempD);
-                        rowList.add(row);
-                        String name=pm.getApplicationLabel(info).toString();
-                        names.add(name);
-                        images.add(pm.getApplicationIcon(info));
-                    }
-                    tempM=0;
-                    tempD=0;
-                }
-                Collections.sort(rowList);
-                setUpRow(rowList);
-                for (RowObject r:rowList) {
-                    monthlyUsage.add(r.getUsage());
-                    dailyUsage.add(r.getUsage());
-                    names.add(r.getName());
-                    images.add(r.getSlika());
-                }
+        for (RowObject r:rowList) {
+            monthlyUsage.add(r.getUsage());
+            dailyUsage.add(r.getUsage());
+            names.add(r.getName());
+            images.add(r.getSlika());
+        }
 
-                MyAdapter adapter=new MyAdapter(this,dailyUsage,dailyUsage,names,images);
-                binding.recyclerView.setAdapter(adapter);
-                totalWifi/=1000;
-                DecimalFormat df=new DecimalFormat("0.00");
-                totalWifi=Double.parseDouble(df.format(totalWifi));
-                String totalWifiUsage="Wifi: "+ totalWifi+"GB";
-                binding.wifiTotal.setText(totalWifiUsage);
+        MyAdapter adapter=new MyAdapter(this,monthlyUsage,dailyUsage,names,images);
+        binding.recyclerView.setAdapter(adapter);
+        totalWifi/=1000;
+        DecimalFormat df=new DecimalFormat("0.00");
+        totalWifi=Double.parseDouble(df.format(totalWifi));
+        String totalWifiUsage="Wifi: "+ totalWifi+"GB";
+        binding.wifiTotal.setText(totalWifiUsage);
     }
 
     private void setUpRow(List<RowObject> rowList) {
@@ -399,16 +338,14 @@ public class MainActivity extends AppCompatActivity {
         c.set(Calendar.MILLISECOND, 0);
         return c.getTimeInMillis();
     }
-
-    public long currentmonthMillis(){
+    @SuppressLint("SimpleDateFormat")
+    public long currentMonthMillis(){
         Calendar monthlyCal = Calendar.getInstance();
-        DateFormat dateFormat = new SimpleDateFormat("MM");
+         DateFormat dateFormat = new SimpleDateFormat("MM");
         Date date = new Date();
         int month=Integer.parseInt(dateFormat.format(date));
         dateFormat=new SimpleDateFormat("yyyy");
         int yearCur=Integer.parseInt(dateFormat.format(date));
-        dateFormat=new SimpleDateFormat("DD");
-        int dayCur=Integer.parseInt(dateFormat.format(date));
 
         monthlyCal.set(Calendar.YEAR,yearCur);
         monthlyCal.set(Calendar.MONTH,--month);
@@ -417,6 +354,40 @@ public class MainActivity extends AppCompatActivity {
         monthlyCal.set(Calendar.MINUTE,1);
         monthlyCal.set(Calendar.SECOND,1);
         return monthlyCal.getTimeInMillis();
+    }
+
+    public double retrieveDataUsage(List<RowObject> rowList,long startTime,int type){
+        List<ApplicationInfo> appInfo=getAppInfo();
+        Calendar cal=Calendar.getInstance();
+        cal.add(Calendar.DATE,3);
+        NetworkStatsManager networkStatsManager = (NetworkStatsManager) getApplicationContext().getSystemService(Context.NETWORK_STATS_SERVICE);
+        double temp=0;
+        double total=0;
+        NetworkStats networkStats1;
+        NetworkStats.Bucket bucket=new NetworkStats.Bucket();
+        PackageManager pm=getPackageManager();
+
+        for(ApplicationInfo info:appInfo) {
+            networkStats1 = networkStatsManager.queryDetailsForUid(type, null, startTime, cal.getTimeInMillis(), info.uid);
+
+            while(networkStats1.hasNextBucket()) {
+                networkStats1.getNextBucket(bucket);
+                temp += ((double) bucket.getRxBytes()) / MILLION;
+                temp += ((double) bucket.getTxBytes()) / MILLION;
+
+            }
+            if(temp>1) {
+                total+=temp;
+                RowObject row=new RowObject();
+                String name=pm.getApplicationLabel(info).toString();
+                row.setUsageTemp(temp);
+                row.setName(name);
+                row.setSlika(pm.getApplicationIcon(info));
+                rowList.add(row);
+            }
+            temp=0;
+        }
+        return total;
     }
 
     public void recyclerViewWorkingThread() {

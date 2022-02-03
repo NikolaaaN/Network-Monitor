@@ -63,7 +63,6 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> {
         public MyViewHolder(@NonNull View itemView) {
             super(itemView);
             txtMonth=itemView.findViewById(R.id.txtMonthly);
-            txtMonth.setTextColor(Color.parseColor("#FF039BE5"));
             txtPercentage=itemView.findViewById(R.id.txtPercentage);
             icon=itemView.findViewById(R.id.rowIcon);
 

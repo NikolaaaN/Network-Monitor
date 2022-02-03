@@ -22,16 +22,15 @@ public class NotificationService extends Service {
     private static final int THOUSAND =1000;
     private static final int BYTES_IN_MB =1024*1024;
     private static final int BYTES_IN_KB =1024;
-    private NotificationCompat.Builder builder;
     private NotificationManagerCompat notificationManager;
     private Notification notification;
-    private Thread thread;
     private boolean running;
+    private long start=0;
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         createNotificationChannel();
         Intent intent1 = new Intent(this, MainActivity.class);
-        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent1, 0);
+        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent1, PendingIntent.FLAG_IMMUTABLE);
         notification = new NotificationCompat.Builder(this, "ChannelId1")
                 .setContentTitle("Notification Title")
                 .setContentText("Notification text")
@@ -39,9 +38,9 @@ public class NotificationService extends Service {
                 .setContentIntent(pendingIntent)
                 .setSilent(true)
                 .build();
-        builder = new NotificationCompat.Builder(this, getString(R.string.channel));
         notificationManager= NotificationManagerCompat.from(this);
         running=true;
+        start=TrafficStats.getMobileRxBytes()+TrafficStats.getTotalTxBytes();
 
         startForeground(1, notification);
         setUpWorkerThread();
@@ -49,39 +48,40 @@ public class NotificationService extends Service {
         return START_STICKY;
     }
 
+    @SuppressWarnings("BusyWait")
     private void setUpWorkerThread() {
-        Runnable runnable = new Runnable() {
-            @Override
-            public void run() {
-                while (running) {
-                    long tempDown = TrafficStats.getTotalRxBytes();
-                    long tempUp = TrafficStats.getTotalTxBytes();
+        Runnable runnable = () -> {
+            while (running) {
+                long tempDown = TrafficStats.getTotalRxBytes();
+                long tempUp = TrafficStats.getTotalTxBytes();
 
-                    try {
-                        Thread.sleep(SECOND);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                    double currDown = (double) TrafficStats.getTotalRxBytes() - tempDown;
-                    double currUp = (double) TrafficStats.getTotalTxBytes() - tempUp;
-
-                    String download=roundingSpeed(currDown);
-                    String upload=roundingSpeed(currUp);
-
-                    Intent intent1 = new Intent(NotificationService.this, MainActivity.class);
-                    PendingIntent pendingIntent = PendingIntent.getActivity(NotificationService.this, 0, intent1, 0);
-                    notification = new NotificationCompat.Builder(NotificationService.this, "ChannelId1")
-                            .setContentTitle("Download: " + download + "   " + "Upload: " + upload)
-                            .setSmallIcon(R.drawable.ic_notification)
-                            .setContentIntent(pendingIntent)
-                            .setSilent(true)
-                            .build();
-                    notificationManager.notify(1, notification);
+                try {
+                    Thread.sleep(SECOND);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
                 }
-                Log.d("nit","thread stopped");
+                double currDown = (double) TrafficStats.getTotalRxBytes() - tempDown;
+                double currUp = (double) TrafficStats.getTotalTxBytes() - tempUp;
+                double totalMobile=(double) TrafficStats.getMobileRxBytes()+TrafficStats.getMobileTxBytes()-start;
+
+                String download=roundingSpeed(currDown);
+                String upload=roundingSpeed(currUp);
+                String totalMobilestring=roundingValue(totalMobile);
+
+                Intent intent1 = new Intent(NotificationService.this, MainActivity.class);
+                PendingIntent pendingIntent = PendingIntent.getActivity(NotificationService.this, 0, intent1, PendingIntent.FLAG_IMMUTABLE);
+                notification = new NotificationCompat.Builder(NotificationService.this, "ChannelId1")
+                        .setContentTitle("Download: " + download + "   " + "Upload: " + upload)
+                        .setContentText("Mobile: "+totalMobile)
+                        .setSmallIcon(R.drawable.ic_notification)
+                        .setContentIntent(pendingIntent)
+                        .setSilent(true)
+                        .build();
+                notificationManager.notify(1, notification);
             }
+            Log.d("nit","thread stopped");
         };
-        thread=new Thread(runnable);
+        Thread thread = new Thread(runnable);
         thread.start();
     }
 
@@ -97,6 +97,17 @@ public class NotificationService extends Service {
         }
         return df.format(value)+"B/s";
 
+    }
+
+    private String roundingValue(double value){
+        DecimalFormat df = new DecimalFormat("0.00");
+        if (value>MILLION){
+            return df.format(value/BYTES_IN_MB)+"MB";
+        }
+        if (value>THOUSAND){
+            return df.format(value/BYTES_IN_KB)+"KB";
+        }
+        return df.format(value)+"B";
     }
 
     private void createNotificationChannel() {
