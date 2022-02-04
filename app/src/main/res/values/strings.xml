@@ -4,11 +4,11 @@
     <string name="test">Test</string>
     <string name="network_monitor">Network Monitor</string>
     <string name="track_you_internet_usage">Track you internet usage</string>
-    <string name="turn_on_the_counter">Notification Live Tracking:</string>
+    <string name="turn_on_the_counter">Notification tracking:</string>
     <string name="switchTracker">Off/On</string>
-    <string name="total">Total: </string>
-    <string name="current_download">Down: </string>
-    <string name="current_upload">Up: </string>
+    <string name="total">Total </string>
+    <string name="current_download">Down </string>
+    <string name="current_upload">Up </string>
     <string name="download">Download:</string>
     <string name="upload">Upload:</string>
     <string name="ping">Ping:</string>
@@ -24,4 +24,14 @@
     <string name="notification_title">notif example title</string>
     <string name="settings">Settings</string>
     <string name="mobile">Mobile: 20GB</string>
+    <string name="refresh">Refresh</string>
+    <string name="placeholder_text">Placeholder text</string>
+    <string name="today">Today</string>
+    <string name="show_mobile_data_only">Mobile data only:</string>
+    <string name="choose_speed_format">Speed Format</string>
+    <string name="MBs">MB/s</string>
+    <string name="Mbs">Mb/s</string>
+    <string name="wifi">Wifi</string>
+    <string name="mobileUsage">Mobile</string>
+    <string name="this_month">This month</string>
 </resources>

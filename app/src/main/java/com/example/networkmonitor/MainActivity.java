@@ -46,6 +46,7 @@ public class MainActivity extends AppCompatActivity {
     private static final int THOUSAND =1000;
     private static final int BYTES_IN_MB =1024*1024;
     private static final int BYTES_IN_KB =1024;
+    private static final int MIN_DATA_AMOUNT_IN_MB =1;
 
     private ActivityMainBinding binding;
     private boolean notificationTracker;
@@ -188,6 +189,8 @@ public class MainActivity extends AppCompatActivity {
         if (value>THOUSAND){
             return df.format(value/BYTES_IN_KB)+"KB/s";
         }
+        if (value==0)
+            return 0+"B/s";
         return df.format(value)+"B/s";
 
     }
@@ -289,7 +292,7 @@ public class MainActivity extends AppCompatActivity {
     @SuppressLint("SimpleDateFormat")
     private void recyclerViewLoading(){
 
-        long start=currentDateMillis();
+        long start=currentMonthMillis();
 
         List<String> names=new ArrayList<>();
         List<Drawable> images=new ArrayList<>();
@@ -374,9 +377,8 @@ public class MainActivity extends AppCompatActivity {
                 networkStats1.getNextBucket(bucket);
                 temp += ((double) bucket.getRxBytes()) / MILLION;
                 temp += ((double) bucket.getTxBytes()) / MILLION;
-
             }
-            if(temp>1) {
+            if(temp>MIN_DATA_AMOUNT_IN_MB) {
                 total+=temp;
                 RowObject row=new RowObject();
                 String name=pm.getApplicationLabel(info).toString();

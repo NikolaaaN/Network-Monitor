@@ -40,7 +40,7 @@ public class NotificationService extends Service {
                 .build();
         notificationManager= NotificationManagerCompat.from(this);
         running=true;
-        start=TrafficStats.getMobileRxBytes()+TrafficStats.getTotalTxBytes();
+        start=TrafficStats.getMobileRxBytes()+TrafficStats.getMobileTxBytes();
 
         startForeground(1, notification);
         setUpWorkerThread();
@@ -107,7 +107,7 @@ public class NotificationService extends Service {
         if (value>THOUSAND){
             return df.format(value/BYTES_IN_KB)+"KB";
         }
-        return df.format(value)+"B";
+        return (df.format(value)+"B");
     }
 
     private void createNotificationChannel() {
