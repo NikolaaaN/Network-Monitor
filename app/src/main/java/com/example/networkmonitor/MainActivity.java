@@ -7,6 +7,7 @@ import static android.app.AppOpsManager.OPSTR_GET_USAGE_STATS;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
+import androidx.recyclerview.widget.DividerItemDecoration;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
@@ -18,6 +19,8 @@ import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.net.ConnectivityManager;
 import android.net.TrafficStats;
@@ -75,6 +78,7 @@ public class MainActivity extends AppCompatActivity {
 
         intentService=new Intent(this,NotificationService.class);
         startForegroundService(intentService);
+        settingsWorkingThread();
 
         requestPermissions();
         setListeners();
@@ -402,6 +406,29 @@ public class MainActivity extends AppCompatActivity {
         Thread thread = new Thread(runnable);
         thread.start();
 
+    }
+
+    public void settingsWorkingThread(){
+        Runnable runnable= this::loadSettings;
+        Thread thread=new Thread(runnable);
+        thread.start();
+    }
+
+    public void loadSettings(){
+        List<String> titles=new ArrayList<>();
+        titles.add("Feedback");
+        titles.add("Privacy Policy");
+        titles.add("FAQ");
+        titles.add("Rate the App");
+
+        List<String> descriptions=new ArrayList<>();
+        descriptions.add("Change the app");
+        descriptions.add("Read about what we do with your information");
+        descriptions.add("Questions about the app");
+        descriptions.add("Show your love on the playstore");
+        SettingsAdapter settingsAdapter=new SettingsAdapter(this,titles,descriptions);
+        binding.recyclerViewSettings.setAdapter(settingsAdapter);
+        binding.recyclerViewSettings.addItemDecoration(new DividerItemDecoration(binding.recyclerViewSettings.getContext(), DividerItemDecoration.VERTICAL));
     }
 
     @Override
