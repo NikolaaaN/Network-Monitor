@@ -79,12 +79,13 @@
                 android:layout_height="wrap_content"
                 android:layout_marginVertical="32dp"
                 android:orientation="vertical"
-                android:visibility="visible">
+                android:visibility="invisible">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:baselineAligned="false"
+                    android:layout_marginVertical="40dp"
                     android:orientation="horizontal"
                     android:weightSum="2">
 
@@ -141,7 +142,7 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginVertical="30dp"
+                    android:layout_marginVertical="40dp"
                     android:baselineAligned="false"
                     android:orientation="horizontal"
                     android:weightSum="2">
@@ -292,7 +293,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:visibility="invisible">
+                android:visibility="visible">
 
                 <RadioGroup
                     android:id="@+id/radioGroup1"
@@ -360,7 +361,7 @@
                     app:layout_constraintTop_toBottomOf="@id/radioGroup1">
                     <LinearLayout
                         android:id="@+id/wifiTotalLayout"
-                        android:layout_width="match_parent"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         >
@@ -376,24 +377,7 @@
 
                     </LinearLayout>
 
-                    <LinearLayout
-                        android:id="@+id/mobileTotalLayout"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        >
-                        <TextView
-                            android:id="@+id/mobileTotal"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginHorizontal="20dp"
-                            android:layout_marginVertical="10dp"
-                            android:textSize="20sp"
-                            android:textColor="@color/black"
-                            android:text="@string/mobile"
-                            android:textStyle="bold"
-                            />
-                    </LinearLayout>
+
 
 
                 </LinearLayout>

@@ -60,6 +60,9 @@ public class MainActivity extends AppCompatActivity {
     private boolean loaded=false;
     String[] permissions={Manifest.permission.INTERNET};
 
+    enum NetworkType{WIFI,MOBILE}
+    enum DATERV{DAY,MONTH} //date recycler view
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -83,7 +86,7 @@ public class MainActivity extends AppCompatActivity {
         requestPermissions();
         setListeners();
         updateUI();
-        recyclerViewWorkingThread();
+        recyclerViewWorkingThread(NetworkType.WIFI);
     }
     @Override
     protected void onStart(){
@@ -251,6 +254,22 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
+
+        binding.radioWifi.setOnClickListener(view -> {
+            recyclerViewLoading(NetworkType.WIFI,DATERV.DAY);
+        });
+
+        binding.radioMobile.setOnClickListener(view -> {
+            recyclerViewLoading(NetworkType.MOBILE,DATERV.MONTH);
+        });
+
+        binding.radioToday.setOnClickListener(view -> {
+            recyclerViewLoading(NetworkType.WIFI,DATERV.DAY);
+        });
+        binding.radioThisMonth.setOnClickListener(view -> {
+            recyclerViewLoading(NetworkType.WIFI,DATERV.MONTH);
+        });
+
     }
 
 //    private void getPing(){
@@ -294,15 +313,23 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @SuppressLint("SimpleDateFormat")
-    private void recyclerViewLoading(){
-
-        long start=currentMonthMillis();
-
+    private void recyclerViewLoading(NetworkType type,DATERV daterv){
+        binding.recyclerView.setVisibility(View.GONE);
+        long start;
+        if (daterv==DATERV.MONTH)
+             start=currentMonthMillis();
+        else
+            start=currentDateMillis();
+        monthlyUsage=new ArrayList<>();
+        dailyUsage=new ArrayList<>();
         List<String> names=new ArrayList<>();
         List<Drawable> images=new ArrayList<>();
         List<RowObject> rowList=new ArrayList<>();
-
-        double totalWifi=retrieveDataUsage(rowList,start,ConnectivityManager.TYPE_WIFI);
+        double totalWifi;
+        if (type==NetworkType.WIFI)
+             totalWifi=retrieveDataUsage(rowList,start,ConnectivityManager.TYPE_WIFI);
+        else
+             totalWifi=retrieveDataUsage(rowList,start,ConnectivityManager.TYPE_MOBILE);
 
         Collections.sort(rowList);
         setUpRow(rowList);
@@ -319,8 +346,9 @@ public class MainActivity extends AppCompatActivity {
         totalWifi/=1000;
         DecimalFormat df=new DecimalFormat("0.00");
         totalWifi=Double.parseDouble(df.format(totalWifi));
-        String totalWifiUsage="Wifi: "+ totalWifi+"GB";
+        String totalWifiUsage="Total: "+ totalWifi+"GB";
         binding.wifiTotal.setText(totalWifiUsage);
+        binding.recyclerView.setVisibility(View.VISIBLE);
     }
 
     private void setUpRow(List<RowObject> rowList) {
@@ -375,8 +403,10 @@ public class MainActivity extends AppCompatActivity {
         PackageManager pm=getPackageManager();
 
         for(ApplicationInfo info:appInfo) {
-            networkStats1 = networkStatsManager.queryDetailsForUid(type, null, startTime, cal.getTimeInMillis(), info.uid);
-
+            if (type==ConnectivityManager.TYPE_WIFI)
+                 networkStats1 = networkStatsManager.queryDetailsForUid(ConnectivityManager.TYPE_WIFI, null, startTime, cal.getTimeInMillis(), info.uid);
+            else
+                networkStats1 = networkStatsManager.queryDetailsForUid(ConnectivityManager.TYPE_MOBILE, null, startTime, cal.getTimeInMillis(), info.uid);
             while(networkStats1.hasNextBucket()) {
                 networkStats1.getNextBucket(bucket);
                 temp += ((double) bucket.getRxBytes()) / MILLION;
@@ -396,10 +426,10 @@ public class MainActivity extends AppCompatActivity {
         return total;
     }
 
-    public void recyclerViewWorkingThread() {
+    public void recyclerViewWorkingThread(NetworkType type) {
         Runnable runnable = () -> {
             if (getGrantStatus())
-                recyclerViewLoading();
+                binding.radioWifi.performClick();
             loaded=true;
         };
 
