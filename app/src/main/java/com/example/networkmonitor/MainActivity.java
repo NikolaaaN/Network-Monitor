@@ -32,6 +32,10 @@ import android.view.View;
 import android.widget.Toast;
 
 import com.example.networkmonitor.databinding.ActivityMainBinding;
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.MobileAds;
+import com.google.android.gms.ads.initialization.InitializationStatus;
+import com.google.android.gms.ads.initialization.OnInitializationCompleteListener;
 
 import java.text.DateFormat;
 import java.text.DecimalFormat;
@@ -61,6 +65,7 @@ public class MainActivity extends AppCompatActivity {
     String[] permissions={Manifest.permission.INTERNET};
     private NetworkType networkType;
     private DATERV daterv;
+    private boolean mbs;
 
     enum NetworkType{WIFI,MOBILE}
     enum DATERV{DAY,MONTH} //date recycler view
@@ -80,6 +85,24 @@ public class MainActivity extends AppCompatActivity {
         binding.switchTracker.performClick();
         monthlyUsage=new ArrayList<>();
         dailyUsage=new ArrayList<>();
+        mbs=false;
+
+        List<RowObject>lista = new ArrayList<>();
+        double totalUsage=retrieveDataUsage(lista,currentDateMillis(),ConnectivityManager.TYPE_WIFI);
+        DecimalFormat df=new DecimalFormat("0.00");
+        totalUsage/=BYTES_IN_KB;
+        totalUsage=Double.parseDouble(df.format(totalUsage));
+        String totalWifiUsage= totalUsage+"GB";
+
+        binding.totalToday.setText(totalWifiUsage);
+
+        MobileAds.initialize(this, new OnInitializationCompleteListener() {
+            @Override
+            public void onInitializationComplete(InitializationStatus initializationStatus) {
+            }
+        });
+        AdRequest adRequest=new AdRequest.Builder().build();
+        binding.adView.loadAd(adRequest);
 
         intentService=new Intent(this,NotificationService.class);
         startForegroundService(intentService);
@@ -169,7 +192,10 @@ public class MainActivity extends AppCompatActivity {
 
                     double currDown=(double)TrafficStats.getTotalRxBytes()-tempDown;
                     double currUp=(double)TrafficStats.getTotalTxBytes()-tempUp;
-
+                    if (mbs){
+                        currDown*=8;
+                        currUp*=8;
+                    }
                     String download=roundingSpeed(currDown);
                     String upload=roundingSpeed(currUp);
 
@@ -189,18 +215,34 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private String roundingSpeed(double value) {
+        String speed;
 
         DecimalFormat df = new DecimalFormat("0.00");
 
         if (value>MILLION){
-            return df.format(value/BYTES_IN_MB)+"MB/s";
+            if (mbs)
+                speed="Mb/s";
+            else
+                speed="MB/s";
+            return df.format(value/BYTES_IN_MB)+speed;
         }
         if (value>THOUSAND){
-            return df.format(value/BYTES_IN_KB)+"KB/s";
+            if (mbs)
+                speed="Kb/s";
+            else
+                speed="KB/s";
+            return df.format(value/BYTES_IN_KB)+speed;
         }
-        if (value==0)
-            return 0+"B/s";
-        return df.format(value)+"B/s";
+        if (mbs)
+            speed="b/s";
+        else
+            speed="B/s";
+        if (value==0) {
+
+            return 0 + speed;
+        }
+
+        return df.format(value)+speed;
 
     }
 
@@ -266,11 +308,10 @@ public class MainActivity extends AppCompatActivity {
 
         binding.radioWifi.setOnClickListener(view -> {
             binding.recyclerView.setVisibility(View.INVISIBLE);
-            binding.progressBar.setVisibility(View.VISIBLE);
+
             networkType=NetworkType.WIFI;
             recyclerViewLoading(NetworkType.WIFI,daterv);
             binding.recyclerView.setVisibility(View.VISIBLE);
-            binding.progressBar.setVisibility(View.INVISIBLE);
 
         });
 
@@ -287,6 +328,9 @@ public class MainActivity extends AppCompatActivity {
             daterv=DATERV.MONTH;
             recyclerViewLoading(networkType,DATERV.MONTH);
         });
+
+        binding.idMbs.setOnClickListener(view -> mbs=true);
+        binding.idMBs.setOnClickListener(view -> mbs=false);
 
     }
 
@@ -363,7 +407,7 @@ public class MainActivity extends AppCompatActivity {
 
         MyAdapter adapter=new MyAdapter(this,monthlyUsage,dailyUsage,names,images);
         binding.recyclerView.setAdapter(adapter);
-        totalWifi/=1000;
+        totalWifi/=BYTES_IN_KB;
         DecimalFormat df=new DecimalFormat("0.00");
         totalWifi=Double.parseDouble(df.format(totalWifi));
         String totalWifiUsage="Total: "+ totalWifi+"GB";
@@ -482,7 +526,7 @@ public class MainActivity extends AppCompatActivity {
         binding.recyclerViewSettings.addItemDecoration(new DividerItemDecoration(binding.recyclerViewSettings.getContext(), DividerItemDecoration.VERTICAL));
     }
 
-    private void setUpSettingsRecyclerView(){
+    private void getTotalUsageToday(){
 
     }
 

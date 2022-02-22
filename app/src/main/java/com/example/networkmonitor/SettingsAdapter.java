@@ -53,7 +53,6 @@ public class SettingsAdapter extends RecyclerView.Adapter<SettingsAdapter.MyView
         }
     }
 
-
     public static class MyViewHolder extends RecyclerView.ViewHolder {
         TextView txtTitle;
         TextView txtDesc;
