@@ -59,6 +59,8 @@ public class MainActivity extends AppCompatActivity {
     private Intent intentService;
     private boolean loaded=false;
     String[] permissions={Manifest.permission.INTERNET};
+    private NetworkType networkType;
+    private DATERV daterv;
 
     enum NetworkType{WIFI,MOBILE}
     enum DATERV{DAY,MONTH} //date recycler view
@@ -234,12 +236,18 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onSwipeLeft() {
                 if (binding.card1.getVisibility() == View.VISIBLE) {
+                    binding.navbar.setSelectedItemId(R.id.usage);
+                    return;
+                }
+
+                if (binding.card2.getVisibility() == View.VISIBLE) {
                     binding.navbar.setSelectedItemId(R.id.settings);
                     return;
                 }
 
                 if (binding.card2.getVisibility() == View.VISIBLE) {
-                    binding.navbar.setSelectedItemId(R.id.usage);
+                    binding.navbar.setSelectedItemId(R.id.settings);
+                    return;
                 }
             }
 
@@ -250,24 +258,34 @@ public class MainActivity extends AppCompatActivity {
                     return;
                 }
                 if (binding.card3.getVisibility() == View.VISIBLE) {
-                    binding.navbar.setSelectedItemId(R.id.settings);
+                    binding.navbar.setSelectedItemId(R.id.usage);
+                    return;
                 }
             }
         });
 
         binding.radioWifi.setOnClickListener(view -> {
-            recyclerViewLoading(NetworkType.WIFI,DATERV.DAY);
+            binding.recyclerView.setVisibility(View.INVISIBLE);
+            binding.progressBar.setVisibility(View.VISIBLE);
+            networkType=NetworkType.WIFI;
+            recyclerViewLoading(NetworkType.WIFI,daterv);
+            binding.recyclerView.setVisibility(View.VISIBLE);
+            binding.progressBar.setVisibility(View.INVISIBLE);
+
         });
 
         binding.radioMobile.setOnClickListener(view -> {
-            recyclerViewLoading(NetworkType.MOBILE,DATERV.MONTH);
+            networkType=NetworkType.MOBILE;
+            recyclerViewLoading(NetworkType.MOBILE,daterv);
         });
 
         binding.radioToday.setOnClickListener(view -> {
-            recyclerViewLoading(NetworkType.WIFI,DATERV.DAY);
+            daterv=DATERV.DAY;
+            recyclerViewLoading(networkType,DATERV.DAY);
         });
         binding.radioThisMonth.setOnClickListener(view -> {
-            recyclerViewLoading(NetworkType.WIFI,DATERV.MONTH);
+            daterv=DATERV.MONTH;
+            recyclerViewLoading(networkType,DATERV.MONTH);
         });
 
     }
@@ -325,6 +343,8 @@ public class MainActivity extends AppCompatActivity {
         List<String> names=new ArrayList<>();
         List<Drawable> images=new ArrayList<>();
         List<RowObject> rowList=new ArrayList<>();
+
+
         double totalWifi;
         if (type==NetworkType.WIFI)
              totalWifi=retrieveDataUsage(rowList,start,ConnectivityManager.TYPE_WIFI);
@@ -446,19 +466,24 @@ public class MainActivity extends AppCompatActivity {
 
     public void loadSettings(){
         List<String> titles=new ArrayList<>();
-        titles.add("Feedback");
-        titles.add("Privacy Policy");
-        titles.add("FAQ");
         titles.add("Rate the App");
+        titles.add("Feedback");
+        titles.add("FAQ");
+        titles.add("Privacy Policy");
 
         List<String> descriptions=new ArrayList<>();
-        descriptions.add("Change the app");
-        descriptions.add("Read about what we do with your information");
-        descriptions.add("Questions about the app");
         descriptions.add("Show your love on the playstore");
+        descriptions.add("Change the app");
+        descriptions.add("Questions about the app");
+        descriptions.add("Read about what we do with your information");
+
         SettingsAdapter settingsAdapter=new SettingsAdapter(this,titles,descriptions);
         binding.recyclerViewSettings.setAdapter(settingsAdapter);
         binding.recyclerViewSettings.addItemDecoration(new DividerItemDecoration(binding.recyclerViewSettings.getContext(), DividerItemDecoration.VERTICAL));
+    }
+
+    private void setUpSettingsRecyclerView(){
+
     }
 
     @Override
