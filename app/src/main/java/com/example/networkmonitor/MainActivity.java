@@ -86,15 +86,16 @@ public class MainActivity extends AppCompatActivity {
         monthlyUsage=new ArrayList<>();
         dailyUsage=new ArrayList<>();
         mbs=false;
+        if (getGrantStatus()) {
+            List<RowObject> lista = new ArrayList<>();
+            double totalUsage = retrieveDataUsage(lista, currentDateMillis(), ConnectivityManager.TYPE_WIFI);
+            DecimalFormat df = new DecimalFormat("0.00");
+            totalUsage /= BYTES_IN_KB;
+            totalUsage = Double.parseDouble(df.format(totalUsage));
+            String totalWifiUsage = totalUsage + "GB";
+            binding.totalToday.setText(totalWifiUsage);
+        }
 
-        List<RowObject>lista = new ArrayList<>();
-        double totalUsage=retrieveDataUsage(lista,currentDateMillis(),ConnectivityManager.TYPE_WIFI);
-        DecimalFormat df=new DecimalFormat("0.00");
-        totalUsage/=BYTES_IN_KB;
-        totalUsage=Double.parseDouble(df.format(totalUsage));
-        String totalWifiUsage= totalUsage+"GB";
-
-        binding.totalToday.setText(totalWifiUsage);
 
         MobileAds.initialize(this, new OnInitializationCompleteListener() {
             @Override
@@ -111,7 +112,8 @@ public class MainActivity extends AppCompatActivity {
         requestPermissions();
         setListeners();
         updateUI();
-        recyclerViewWorkingThread(NetworkType.WIFI);
+        if (getGrantStatus())
+         recyclerViewWorkingThread(NetworkType.WIFI);
     }
     @Override
     protected void onStart(){
@@ -120,7 +122,7 @@ public class MainActivity extends AppCompatActivity {
             Toast.makeText(this,"Permission Granted",Toast.LENGTH_SHORT).show();
         }else{
             Toast.makeText(this,"Permission Denied",Toast.LENGTH_SHORT).show();
-            startActivity(new Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS));
+           // startActivity(new Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS));
         }
     }
     @Override
@@ -257,12 +259,21 @@ public class MainActivity extends AppCompatActivity {
                     return true;
 
                 case R.id.usage:
-                    if (loaded) {
+
                         binding.card1.setVisibility(View.GONE);
                         binding.card2.setVisibility(View.VISIBLE);
                         binding.card3.setVisibility(View.GONE);
+                        if (!getGrantStatus()) {
+                            binding.card11.setVisibility(View.VISIBLE);
+                            binding.card12.setVisibility(View.GONE);
+
+                        }else {
+                            binding.card11.setVisibility(View.GONE);
+                            binding.card12.setVisibility(View.VISIBLE);
+
+                        }
                         return true;
-                    }
+
                 case R.id.settings:
                     binding.card1.setVisibility(View.GONE);
                     binding.card2.setVisibility(View.GONE);
@@ -270,6 +281,10 @@ public class MainActivity extends AppCompatActivity {
                     return true;
             }
             return false;
+        });
+
+        binding.btnUsageAccess.setOnClickListener(view -> {
+            startActivity(new Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS));
         });
 
         binding.switchTracker.setOnClickListener(v -> switchOnClick());
@@ -526,9 +541,6 @@ public class MainActivity extends AppCompatActivity {
         binding.recyclerViewSettings.addItemDecoration(new DividerItemDecoration(binding.recyclerViewSettings.getContext(), DividerItemDecoration.VERTICAL));
     }
 
-    private void getTotalUsageToday(){
-
-    }
 
     @Override
     protected void onDestroy() {
