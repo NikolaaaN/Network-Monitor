@@ -7,14 +7,155 @@
     tools:context=".PrivacyPolicy">
 
     <TextView
-        android:id="@+id/txtPrivacy"
+        android:id="@+id/txtName"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_margin="20dp"
-        android:textSize="16sp"
+        android:layout_marginVertical="20dp"
+        android:layout_marginHorizontal="10dp"
+        android:textSize="18sp"
         android:gravity="center"
         app:layout_constraintTop_toTopOf="parent"
+        android:text="Data usage and internet speed monitor  Privacy Policy"
+        android:textColor="@color/black"
+        android:textStyle="bold"
+        app:layout_constraintLeft_toLeftOf="parent"/>
+
+    <TextView
+        android:id="@+id/txtIntro"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginVertical="30dp"
+        android:layout_marginHorizontal="10dp"
+        android:textSize="18sp"
+        android:gravity="center"
+        app:layout_constraintTop_toBottomOf="@+id/txtName"
+        android:text="@string/introduction"
+        android:textColor="@color/black"
+        android:textStyle="bold"
+        app:layout_constraintLeft_toLeftOf="parent"/>
+
+    <TextView
+        android:id="@+id/txtIntroduction"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="10dp"
+        android:textSize="14sp"
+        android:textColor="@color/black"
+        android:text="This privacy policy explains how the creator of this app ('I') collects and uses personal data
+"
+        app:layout_constraintTop_toBottomOf="@+id/txtIntro"
+        app:layout_constraintLeft_toLeftOf="parent"
+        />
+    <TextView
+        android:id="@+id/txtCollection"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginVertical="20dp"
+        android:layout_marginHorizontal="10dp"
+        android:textSize="18sp"
+        android:gravity="center"
+        app:layout_constraintTop_toBottomOf="@+id/txtIntroduction"
+        android:text="Collection and use"
+        android:textColor="@color/black"
+        android:textStyle="bold"
+        app:layout_constraintLeft_toLeftOf="parent"/>
+
+    <TextView
+        android:id="@+id/txtCollectionPara"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingHorizontal="10dp"
+        android:textSize="14sp"
+        android:textColor="@color/black"
+        android:text="The creator of this app does not collect any personally identifiable information using this app,
+ as such no information is being used for any purpose.
+All information about internet usage of this device is used only to present it back to the user as is. However this
+app does use Google ads and is distributed using Google PlayStore. To find out more about your privacy in regards to these services
+check out the section for third parties."
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/txtCollection"
+        app:layout_constraintLeft_toLeftOf="parent"
+        />
+
+    <TextView
+        android:id="@+id/txtPermissions"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginVertical="20dp"
+        android:layout_marginHorizontal="10dp"
+        android:textSize="18sp"
+        android:gravity="center"
+        app:layout_constraintTop_toBottomOf="@+id/txtCollectionPara"
+        android:text="Permissions"
+        android:textColor="@color/black"
+        android:textStyle="bold"
+        app:layout_constraintLeft_toLeftOf="parent"/>
+
+    <TextView
+        android:id="@+id/txtPermissionPara"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingHorizontal="10dp"
+        android:textSize="14sp"
+        app:layout_constraintTop_toBottomOf="@+id/txtPermissions"
+        android:text="Usage Data permission is the only permission this app uses. This permission is optional
+and only part of the app will be blocked if it is not granted. Usage data permission is needed to retrieve information
+about your data usage per app over a given period. This information is only presented back to you and it is not stored elsewhere."
+        android:textColor="@color/black"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"/>
 
+    <TextView
+        android:id="@+id/txtThirdParty"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginVertical="20dp"
+        android:layout_marginHorizontal="10dp"
+        android:textSize="18sp"
+        android:gravity="center"
+        app:layout_constraintTop_toBottomOf="@+id/txtPermissionPara"
+        android:text="Third party data use"
+        android:textColor="@color/black"
+        android:textStyle="bold"
+        app:layout_constraintLeft_toLeftOf="parent"/>
+
+    <TextView
+        android:id="@+id/txtThirdPartyPara"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingHorizontal="10dp"
+        android:textSize="14sp"
+        app:layout_constraintTop_toBottomOf="@+id/txtThirdParty"
+        android:text="The app does use third-party services that may collect information used to identify you. To learn
+more about the data being used by these third party services refer to links below."
+        android:textColor="@color/black"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"/>
+
+    <TextView
+        android:id="@+id/txtAccept"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginVertical="20dp"
+        android:layout_marginHorizontal="10dp"
+        android:textSize="18sp"
+        android:gravity="center"
+        app:layout_constraintTop_toBottomOf="@+id/txtThirdPartyPara"
+        android:text="Acceptance of terms and contact"
+        android:textColor="@color/black"
+        android:textStyle="bold"
+        app:layout_constraintLeft_toLeftOf="parent"/>
+
+    <TextView
+        android:id="@+id/txtAcceptpara"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingHorizontal="10dp"
+        android:textSize="14sp"
+        app:layout_constraintTop_toBottomOf="@+id/txtAccept"
+        android:text="By using this app you acknowledge and accept this privacy policy. If you have any questions
+regarding this privacy policy contact me at nmapphelp@gmail.com"
+        android:textColor="@color/black"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"/>
 </androidx.constraintlayout.widget.ConstraintLayout>

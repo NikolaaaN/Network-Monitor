@@ -16,6 +16,5 @@ public class PrivacyPolicy extends AppCompatActivity {
         binding= ActivityPrivacyPolicyBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
-        binding.txtPrivacy.setText("This is privacy policy text");
     }
 }
