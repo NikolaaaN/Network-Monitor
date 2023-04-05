@@ -1,4 +1,4 @@
-Copyright (c) <year>, <copyright holder>
+Copyright (c) 2022, Nikola Nešković
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
